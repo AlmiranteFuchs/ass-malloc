@@ -3,17 +3,18 @@
     INITIAL_TOP_HEAP: .quad 0
     INITIAL_LK: .quad 0
     TOP_LK: .quad 0
-    str: .string "TESTE"
+    hello: .ascii "Hello World\n"
 .section .text
-.global _start
 
-iniciaAlocador:
+.globl alloc_init
+.type alloc_init, @function
+alloc_init:
     # Requests the top of the heap, (brk), saves in the global variable INITIAL_TOP_HEAP
     pushq %rbp
     movq %rsp, %rbp                     # Activate the stack frame
 
     cmpq $0, INITIAL_TOP_HEAP            # IF brk was not set
-    jne fim_inicia                      # THEN goto finalizaAlocador;
+    jne fim_inicia                      # THEN goto alloc_exit;
 
     # get the top of the heap
     movq $0, %rdi                       # %rdi = 0;
@@ -27,7 +28,9 @@ iniciaAlocador:
     pop %rbp
     ret
 
-finalizaAlocador:
+.globl alloc_exit
+.type alloc_exit, @function
+alloc_exit:
     # Restaura o valor inicial do brk
     pushq %rbp
     movq %rsp, %rbp
@@ -39,7 +42,9 @@ finalizaAlocador:
     pop %rbp
     ret
 
-alocaMemoria:
+.globl alloc
+.type alloc, @function
+alloc:
     # Procura um bloco livre que caiba o tamanho solicitado seta como ocupado e retorna o endereço de inicio
     # se nao achar cria um novo bloco utilizando o brk e retorna o endereço de inicio
     pushq %rbp
@@ -47,12 +52,12 @@ alocaMemoria:
 
 # Private functions
 
-criaBloco:
+create_node:
     pushq %rbp
     movq %rsp, %rbp
 
     movq %rdi, %rbx                 # Get the size of the block to be created from the stack
-    movq %rdi, %rcx                 # Get the size of the block to be created from the stack
+    # movq %rdi, %rcx                 # Get the size of the block to be created from the stack
 
     movq TOP_LK, %rax               # Get the top of the heap
     addq %rbx, %rax                     # Add the size of the block to the top of the heap
@@ -65,7 +70,7 @@ criaBloco:
 
     # Treat the return of the syscall
     cmpq $0, %rax                       # IF the syscall failed
-    je fim_criaBloco                   # THEN goto fim_criaBloco; 
+    je fim_create_node                   # THEN goto fim_create_node; 
 
     # system call succeeded
     movq TOP_LK, %rax               # Get the top of the heap
@@ -74,30 +79,47 @@ criaBloco:
     subq $16, %rax                      # Subtract 16 bytes from the top of the heap for the dirty bit and the size of the block
 
     # Goes to the first 8 bytes of the block and sets the dirty bit to 0
-    movq %rax, %rbx                     # Get the address of the dirty bit
-    movq $1, 8(%rbx)                    # Set the dirty bit to 0
-    movq $rcx, 16(%rbx)                 # Set the size of the block
+    # movq %rax, %rbx                     # Get the address of the dirty bit
+    # movq $1, 8(%rbx)                    # Set the dirty bit to 0
+    # movq $rcx, 16(%rbx)                 # Set the size of the block
 
     
     # TODO save in linked list
 
 
-    fim_criaBloco:
+    fim_create_node:
     pop %rbp
     ret
 
-_start:
-    call iniciaAlocador
-    movq $5, %rdi
-    call criaBloco
-    call finalizaAlocador
+.globl foo
+.type foo, @function
+foo:
+    # Prints hello world
+    pushq %rbp
+    movq %rsp, %rbp
 
-    movq $100, %rdi
-    movq $12, %rax
+    movq $1, %rdi
+    movq $1, %rax
+    movq $hello, %rsi
+    movq $12, %rdx
     syscall
+
+    pop %rbp
+    ret
     
 
-    movq $60, %rax
-    movq TOP_LK, %rdi
-    syscall
+#       _start
+#     call alloc_init
+#     movq $5, %rdi
+#     call create_node
+#     call alloc_exit
+
+#     movq $100, %rdi
+#     movq $12, %rax
+#     syscall
+    
+
+#     movq $60, %rax
+#     movq TOP_LK, %rdi
+#     syscall
 
