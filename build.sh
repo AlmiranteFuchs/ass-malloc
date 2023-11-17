@@ -1,4 +1,4 @@
-as malloc.s -o malloc.o -g
-ld malloc.o -o malloc -g
-./malloc
+as ass_malloc.s -o ass_malloc.o -g
+ld ass_malloc.o -o ass_malloc -g
+./ass_malloc
 echo $?
