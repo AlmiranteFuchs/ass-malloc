@@ -3,7 +3,9 @@
     INITIAL_TOP_HEAP: .quad 0
     INITIAL_LK: .quad 0
     TOP_LK: .quad 0
+    format: .string "%d\n"
     hello: .ascii "Debug\n"
+    
 .section .text
 
 .globl alloc_init
@@ -50,27 +52,57 @@ alloc:
     pushq %rbp
     movq %rsp, %rbp
 
+    call create_node
+
+    pop %rbp
+    ret
+
 # Private functions
+
+.globl print_node
+.type print_node, @function
+print_node:
+    # Prints all the nods in the heap
+    pushq %rbp
+    movq %rsp, %rbp
+
+    movq TOP_LK, %rax                   # Get the top of the heap
+    movq INITIAL_LK, %rbx               # Get the initial top of the heap
+
+    # Loop to print all the nodes
+    print_node_loop:
+    cmpq %rbx, %rax                     # IF the top of the heap is equal to the initial top of the heap
+    je fim_print_node                   # THEN goto fim_print_node;
+
+    # Prints the dirty
+
+
+    fim_print_node:
+
+
+
+    pop %rbp
+    ret
 
 create_node:
     pushq %rbp
     movq %rsp, %rbp
 
-    movq %rdi, %rbx                 # Get the size of the block to be created from the stack
-    movq %rdi, %r8                 # Get the size of the block to be created from the stack
+    movq %rdi, %rbx                     # Get the size of the block to be created from the stack
+    movq %rdi, %r8                      # Get the size of the block to be created from the stack
 
-    movq TOP_LK, %rax               # Get the top of the heap
+    movq TOP_LK, %rax                   # Get the top of the heap
     addq %rbx, %rax                     # Add the size of the block to the top of the heap
     addq $16, %rax                      # Add 16 bytes to the top of the heap for the dirty bit and the size of the block
 
-    movq %rax, TOP_LK               # Set the new top of the heap
-    movq TOP_LK, %rdi               # Set the new top of the heap as the argument for the brk syscall
+    movq %rax, TOP_LK                   # Set the new top of the heap
+    movq TOP_LK, %rdi                   # Set the new top of the heap as the argument for the brk syscall
     movq $12, %rax                      # Set the brk syscall number
     syscall                             # Call the brk syscall
 
     # Treat the return of the syscall
     cmpq $0, %rax                       # IF the syscall failed
-    je fim_create_node                   # THEN goto fim_create_node; 
+    je fim_create_node                  # THEN goto fim_create_node; 
 
     # system call succeeded
     movq TOP_LK, %rax                   # Get the top of the heap
@@ -81,15 +113,10 @@ create_node:
     # Goes to the first 8 bytes of the block and sets the dirty bit to 0
     movq %rax, %rbx                     # Get the address of the dirty bit
     movq $1, 8(%rbx)                    # Set the dirty bit to 0
-    movq %r8, 16(%rbx)                 # Set the size of the block
-
-
-
-    
-    # TODO save in linked list
-
+    movq %r8, 16(%rbx)                  # Set the size of the block
 
     fim_create_node:
+
     pop %rbp
     ret
 
@@ -100,10 +127,17 @@ foo:
     pushq %rbp
     movq %rsp, %rbp
 
+    # movq $1, %rdi
+    # movq $1, %rax
+    # movq $hello, %rsi
+    # movq $12, %rdx
+    # syscall
+
+    # prints rdi in the sdout 
     movq $1, %rdi
+    leaq format(%rip), %rsi
+    movq $3, %rdx
     movq $1, %rax
-    movq $hello, %rsi
-    movq $12, %rdx
     syscall
 
     pop %rbp

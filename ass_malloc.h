@@ -5,8 +5,6 @@
 
 int foo();
 
-void create_node();
-
 void alloc();
 
 void alloc_exit();

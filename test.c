@@ -5,6 +5,13 @@ int main(){
     // The functions are defined in malloc.h
     
     // Debug, call foo in the malloc.s
-    int res = foo();
-    printf("foo() = %d\n", res);
+    int res = foo(42);
+    printf("Debug = %d\n", res);
+
+    //alloc_init();
+    //alloc();
+    // alloc();
+    // alloc();
+    // alloc();
+    // alloc();
 }
