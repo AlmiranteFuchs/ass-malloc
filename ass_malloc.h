@@ -1,14 +1,14 @@
 // Header file for assembly functions
 
-#ifdef ASS_MALLOC_H
+#ifndef ASS_MALLOC_H
 #define ASS_MALLOC_H
 
 int foo();
 
 void alloc();
 
-void alloc_exit();
+void finalizaAlocador();
 
-void alloc_init();
+void iniciaAlocador();
 
 #endif

@@ -8,15 +8,15 @@
     
 .section .text
 
-.globl alloc_init
-.type alloc_init, @function
-alloc_init:
+.globl iniciaAlocador
+.type iniciaAlocador, @function
+iniciaAlocador:
     # Requests the top of the heap, (brk), saves in the global variable INITIAL_TOP_HEAP
     pushq %rbp
     movq %rsp, %rbp                     # Activate the stack frame
 
     cmpq $0, INITIAL_TOP_HEAP            # IF brk was not set
-    jne fim_inicia                      # THEN goto alloc_exit;
+    jne fim_inicia                      # THEN goto finalizaAlocador;
 
     # get the top of the heap
     movq $0, %rdi                       # %rdi = 0;
@@ -27,12 +27,12 @@ alloc_init:
     movq %rax, INITIAL_LK             # INITIAL_LK = INITIAL_TOP_HEAP;
 
     fim_inicia:
-    pop %rbp
+    pop %rbp 
     ret
 
-.globl alloc_exit
-.type alloc_exit, @function
-alloc_exit:
+.globl finalizaAlocador
+.type finalizaAlocador, @function
+finalizaAlocador:
     # Restaura o valor inicial do brk
     pushq %rbp
     movq %rsp, %rbp
@@ -44,18 +44,47 @@ alloc_exit:
     pop %rbp
     ret
 
-.globl alloc
-.type alloc, @function
-alloc:
+.globl alocaMem
+.type alocaMem, @function
+alocaMem:
     # Procura um bloco livre que caiba o tamanho solicitado seta como ocupado e retorna o endereço de inicio
     # se nao achar cria um novo bloco utilizando o brk e retorna o endereço de inicio
     pushq %rbp
     movq %rsp, %rbp
+    movq INITIAL_LK, %rax
 
-    call create_node
+    inicio_busca:
+        cmpq TOP_LK, %rax
+        jne continua_busca
+        call create_node
+        jmp fim_busca
+    continua_busca:
+        cmpq $1, 8(%rax)
+        je pega_prox
+        cmpq 16(%rax), %rdi
+        jle pega_prox
+        movq $1, 8(%rax)
+    pega_prox:
+        addq 16(%rax), %rax
+        jmp inicio_busca
+    fim_busca:
+    
+    pop %rbp
+    ret
+
+.globl liberaMem    # NEEDS TO RECIEVE THE ADDRESS OF THE BLOCK AND HIS LEFT NEIGHBOR
+.type liberaMem, @function
+liberaMem:
+    pushq %rbp
+    movq %rsp, %rbp
+
+    movq %rdi, %rbx
+    movq $0, 8(%rbx)  # Unset the dirty bit
+    call fuse_neighbors # Fuse the neighbors if they are free 
 
     pop %rbp
     ret
+
 
 # Private functions
 
@@ -120,6 +149,35 @@ create_node:
     pop %rbp
     ret
 
+fuse_neighbors:
+    pushq %rbp
+    movq %rsp, %rbp
+
+    movq %rdi, %rax                     # Get the address of the block to be freed
+    movq %rsi, %rbx                     # Get the address of the left neighbor
+
+    # Check if the left neighbor is free
+    cmpq $0, 8(%rbx)                    # IF the dirty bit of the left neighbor is 0
+    jne  end_fuse_left                    # THEN goto fuse_left;
+
+    # Fuse the left neighbor
+    movq 16(%rax), %rcx
+    addq %rcx, 16(%rbx)
+
+    end_fuse_left:
+    # Check if the right neighbor is free
+    movq %rax, %rbx
+    addq 16(%rax), %rbx
+    cmpq $0, 8(%rbx)                    # IF the dirty bit of the right neighbor is 0
+    jne  end_fuse_right                    # THEN goto fuse_right;
+
+    # Fuse the right neighbor
+    movq 16(%rbx), %rcx
+    addq %rcx, 16(%rax)
+
+    end_fuse_right:    
+
+
 .globl foo
 .type foo, @function
 foo:
@@ -145,10 +203,10 @@ foo:
     
 
 #       _start
-#     call alloc_init
+#     call iniciaAlocador
 #     movq $5, %rdi
 #     call create_node
-#     call alloc_exit
+#     call finalizaAlocador
 
 #     movq $100, %rdi
 #     movq $12, %rax
