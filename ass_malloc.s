@@ -156,9 +156,21 @@ fuse_neighbors:
     movq %rdi, %rax                     # Get the address of the block to be freed
     movq %rsi, %rbx                     # Get the address of the left neighbor
 
-    # Check if the left neighbor is free
-    cmpq $0, 8(%rbx)                    # IF the dirty bit of the left neighbor is 0
-    jne  end_fuse_left                    # THEN goto fuse_left;
+    # Get the address of the left neighbor
+    movq INITIAL_LK, %rbx               # Get the initial top of the heap
+    
+    busca_vizinho:
+        movq %rbx, %rcx                     # Get the initial top of the heap
+        addq 16(%rbx), %rcx                 # Add the size of the block to the top of the heap
+        cmpq %rax, %rcx                     # IF the top of the heap is equal to the initial top of the heap
+        je check_dirtybit                    # THEN goto end_fuse_left;
+        addq 16(%rbx), %rbx                 # Add the size of the block to the top of the heap
+        jmp busca_vizinho
+
+    check_dirtybit: 
+        # Check if the left neighbor is free
+        cmpq $0, 8(%rbx)                    # IF the dirty bit of the left neighbor is 0
+        jne  end_fuse_left                    # THEN goto fuse_left;
 
     # Fuse the left neighbor
     movq 16(%rax), %rcx
