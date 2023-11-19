@@ -154,11 +154,11 @@ fuse_neighbors:
     movq %rsp, %rbp
 
     movq %rdi, %rax                     # Get the address of the block to be freed
-    movq %rsi, %rbx                     # Get the address of the left neighbor
+    
+    # movq %rsi, %rbx                     # Get the address of the left neighbor IF PASSED BY PARAMETER
 
     # Get the address of the left neighbor
     movq INITIAL_LK, %rbx               # Get the initial top of the heap
-    
     busca_vizinho:
         movq %rbx, %rcx                     # Get the initial top of the heap
         addq 16(%rbx), %rcx                 # Add the size of the block to the top of the heap
