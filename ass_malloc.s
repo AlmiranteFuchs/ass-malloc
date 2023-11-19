@@ -3,7 +3,7 @@
     INITIAL_TOP_HEAP: .quad 0
     INITIAL_LK: .quad 0
     TOP_LK: .quad 0
-    hello: .ascii "Hello World\n"
+    hello: .ascii "Debug\n"
 .section .text
 
 .globl alloc_init
@@ -57,7 +57,7 @@ create_node:
     movq %rsp, %rbp
 
     movq %rdi, %rbx                 # Get the size of the block to be created from the stack
-    # movq %rdi, %rcx                 # Get the size of the block to be created from the stack
+    movq %rdi, %r8                 # Get the size of the block to be created from the stack
 
     movq TOP_LK, %rax               # Get the top of the heap
     addq %rbx, %rax                     # Add the size of the block to the top of the heap
@@ -73,15 +73,17 @@ create_node:
     je fim_create_node                   # THEN goto fim_create_node; 
 
     # system call succeeded
-    movq TOP_LK, %rax               # Get the top of the heap
+    movq TOP_LK, %rax                   # Get the top of the heap
     # sub size of the block from the top of the heap
     subq %rbx, %rax                     # Subtract the size of the block from the top of the heap
     subq $16, %rax                      # Subtract 16 bytes from the top of the heap for the dirty bit and the size of the block
 
     # Goes to the first 8 bytes of the block and sets the dirty bit to 0
-    # movq %rax, %rbx                     # Get the address of the dirty bit
-    # movq $1, 8(%rbx)                    # Set the dirty bit to 0
-    # movq $rcx, 16(%rbx)                 # Set the size of the block
+    movq %rax, %rbx                     # Get the address of the dirty bit
+    movq $1, 8(%rbx)                    # Set the dirty bit to 0
+    movq %r8, 16(%rbx)                 # Set the size of the block
+
+
 
     
     # TODO save in linked list

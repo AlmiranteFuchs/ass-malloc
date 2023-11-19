@@ -3,7 +3,7 @@
 #ifdef ASS_MALLOC_H
 #define ASS_MALLOC_H
 
-void foo();
+int foo();
 
 void create_node();
 
