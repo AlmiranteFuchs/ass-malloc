@@ -11,7 +11,7 @@ test.o: test.c
 	$(CC) $(CFLAGS) -c test.c -o test.o
 
 ass_malloc.o: ass_malloc.h ass_malloc.s
-	as ass_malloc.s -o ass_malloc.o
+	as ass_malloc.s -o ass_malloc.o -g
 
 clean:
 	rm -rf *.o $(PROG)

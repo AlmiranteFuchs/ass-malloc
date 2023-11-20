@@ -6,6 +6,9 @@
     TOP_LK: .quad 0
     format: .string "%d\n"
     hello: .ascii "Debug\n"
+    gerencial_bits: .string "################"
+    block_free: .string "-"
+    block_occupied: .string "+"
     
 .section .text
 
@@ -52,26 +55,41 @@ alocaMem:
     # se nao achar cria um novo bloco utilizando o brk e retorna o endereço de inicio
     pushq %rbp
     movq %rsp, %rbp
-    movq INITIAL_LK, %rax
+    movq %rdi, %rax     # Numero de bytes a serem alocados
+    movq INITIAL_LK, %rbx   # Get the initial top of the heap
 
-    inicio_busca:
-        cmpq TOP_LK, %rax
-        jne continua_busca
-        call create_node
-        jmp fim_busca
-    continua_busca:
-        cmpq $1, 8(%rax)
-        je pega_prox
-        cmpq 16(%rax), %rdi
-        jle pega_prox
-        movq $1, 8(%rax)
-    pega_prox:
-        addq 16(%rax), %rax
-        jmp inicio_busca
-    fim_busca:
-    
+    jmp busca_bloco
+    cmpq $0, %rax   
+    jne fim_alocaMem
+    aloca_novo_bloco:
+    call create_node
+    jmp fim_alocaMem
+
+    fim_alocaMem:
+    call create_node
     pop %rbp
     ret
+
+    busca_bloco:
+        cmpq %rbx, TOP_LK
+        je fim_alocaMem
+        cmpq $0, 8(%rbx)
+        jne pega_proximo_bloco
+
+        # Bloco livre encontrado
+        cmpq %rax, 16(%rbx)
+        jg pega_proximo_bloco
+        jmp bloco_encontrado
+
+        pega_proximo_bloco:
+        addq 16(%rbx), %rbx
+        jmp busca_bloco
+    
+    bloco_encontrado:
+        movq $1, 8(%rbx)
+        movq %rbx, %rax
+        pop %rbp
+        ret
 
 .globl liberaMem    # NEEDS TO RECIEVE THE ADDRESS OF THE BLOCK AND HIS LEFT NEIGHBOR
 .type liberaMem, @function
@@ -148,6 +166,7 @@ create_node:
 
     fim_create_node:
 
+    movq %rbx, %rax                     # Get the address of the block to be returned
     pop %rbp
     ret
 
@@ -161,6 +180,9 @@ fuse_neighbors:
 
     # Get the address of the left neighbor
     movq INITIAL_LK, %rbx               # Get the initial top of the heap
+    cmpq %rax, INITIAL_LK               # IF the address of the block to be freed is equal to the initial top of the heap
+    je end_fuse_left                    # THEN goto end_fuse_left;
+
     busca_vizinho:
         movq %rbx, %rcx                     # Get the initial top of the heap
         addq 16(%rbx), %rcx                 # Add the size of the block to the top of the heap
@@ -178,7 +200,11 @@ fuse_neighbors:
     movq 16(%rax), %rcx
     addq %rcx, 16(%rbx)
 
+    cmpq %rax, TOP_LK
+    je end_fuse_left
     end_fuse_left:
+    cmpq %rax, INITIAL_LK
+    je end_fuse_right
     # Check if the right neighbor is free
     movq %rax, %rbx
     addq 16(%rax), %rbx
@@ -189,7 +215,9 @@ fuse_neighbors:
     movq 16(%rbx), %rcx
     addq %rcx, 16(%rax)
 
-    end_fuse_right:    
+    end_fuse_right:
+    pop %rbp
+    ret
 
 
 .globl foo
@@ -209,25 +237,63 @@ foo:
     movq $1, %rdi
     leaq format(%rip), %rsi
     movq $3, %rdx
-    movq $1, %rax
+    movq $1, %rax           # Get the top of the heap
+    movq INITIAL_LK, %rbx               # Get the initial top of the heap
+
     syscall
 
     pop %rbp
     ret
     
+.globl imprimeMapa
+.type imprimeMapa, @function
+imprimeMapa:
+    # Prints the map of the heap
+    pushq %rbp
+    movq %rsp, %rbp
 
-#       _start
-#     call iniciaAlocador
-#     movq $5, %rdi
-#     call create_node
-#     call finalizaAlocador
 
-#     movq $100, %rdi
-#     movq $12, %rax
-#     syscall
-    
+    movq INITIAL_LK, %rbx               # Get the initial top of the heap
 
-#     movq $60, %rax
-#     movq TOP_LK, %rdi
-#     syscall
+    imprimeLoop:
+        movq TOP_LK, %rax                   # Get the top of the heap
+        cmpq %rbx, %rax                     # IF the top of the heap is equal to the initial top of the heap
+        je fim_imprimeLoop                  # THEN goto fim_imprimeLoop;
+
+        # Prints the gerencial bits
+        movq $1, %rdi
+        movq $1, %rax
+        leaq gerencial_bits(%rip), %rsi
+        movq $16, %rdx
+        syscall
+
+        # Sets the counter to 0
+        movq $0, I
+
+        # Get the size of the block
+        movq 16(%rbx), %rcx
+
+        # Check if the block is occupied
+        cmpq $0, 8(%rbx)                    # IF the dirty bit of the block is 0
+        je block_free                       # THEN goto block_free;
+
+        # TODO: Print the block as occupied
+        block_occupied:
+            
+
+
+
+        block_free:
+        # TODO: Print the block as free
+
+
+
+
+
+
+    fim_imprimeLoop:
+
+    pop %rbp
+    ret
+
 

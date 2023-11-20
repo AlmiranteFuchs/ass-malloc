@@ -13,4 +13,6 @@ void finalizaAlocador();
 
 void iniciaAlocador();
 
+void imprimeMapa();
+
 #endif
