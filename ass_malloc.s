@@ -107,32 +107,6 @@ liberaMem:
 
 # Private functions
 
-.globl print_node
-.type print_node, @function
-print_node:
-    # Prints all the nods in the heap
-    pushq %rbp
-    movq %rsp, %rbp
-
-    movq TOP_LK, %rax                   # Get the top of the heap
-    movq INITIAL_LK, %rbx               # Get the initial top of the heap
-    
-
-    # Loop to print all the nodes
-    print_node_loop:
-    cmpq %rbx, %rax                     # IF the top of the heap is equal to the initial top of the heap
-    je fim_print_node                   # THEN goto fim_print_node;
-
-    # Prints the dirty
-
-
-    fim_print_node:
-
-
-
-    pop %rbp
-    ret
-
 create_node:
     pushq %rbp
     movq %rsp, %rbp
@@ -252,47 +226,72 @@ imprimeMapa:
     pushq %rbp
     movq %rsp, %rbp
 
-
     movq INITIAL_LK, %rbx               # Get the initial top of the heap
 
-    imprimeLoop:
-        movq TOP_LK, %rax                   # Get the top of the heap
-        cmpq %rbx, %rax                     # IF the top of the heap is equal to the initial top of the heap
-        je fim_imprimeLoop                  # THEN goto fim_imprimeLoop;
+    # Loop to print all the nodes
+    print_all_nodes:
+        cmpq %rbx, TOP_LK                   # IF the top of the heap is equal to the initial top of the heap
+        je end_print_all_nodes                  # THEN goto fim_imprimeMapa;
 
-        # Prints the gerencial bits
+        # Get the node info
+        movq 8(%rbx), %rax                  # Get the dirty bit
+        movq 16(%rbx), %rcx                 # Get the size of the block
+
+        # Print the node info
+        # Header first, just 16 #s
         movq $1, %rdi
         movq $1, %rax
         leaq gerencial_bits(%rip), %rsi
         movq $16, %rdx
         syscall
 
-        # Sets the counter to 0
-        movq $0, I
+        # Save the address of the node
+        movq %rbx, %r9
 
-        # Get the size of the block
-        movq 16(%rbx), %rcx
+        # We move rbx to the next node
+        addq %rcx, %rbx     # for the size
+        addq $16, %rbx      # for the header
 
-        # Check if the block is occupied
-        cmpq $0, 8(%rbx)                    # IF the dirty bit of the block is 0
-        je block_free                       # THEN goto block_free;
+        # Now we do a for 0 till size of the block
+        # Reset the counter
+        movq $0, %r8
 
-        # TODO: Print the block as occupied
-        block_occupied:
-            
+        print_node:
+            # We check if we reached the end
+            cmpq %r8, %rcx
+            je end_print_node
+
+            # Check if the dirty bit is 0
+            cmpq $0, %rax
+            je print_free_node
+
+            print_occupied_node:
+                # print the node info
+                movq $1, %rdi
+                movq $1, %rax
+                leaq block_occupied(%rip), %rsi
+                movq $1, %rdx
+                syscall
+                addq $1, %r8
+                jmp print_node
 
 
+            print_free_node:
+                # Print the node info
+                movq $1, %rdi
+                movq $1, %rax
+                leaq block_free(%rip), %rsi
+                movq $1, %rdx
+                syscall
+                addq $1, %r8
+                jmp print_node
 
-        block_free:
-        # TODO: Print the block as free
+        end_print_node:
+        jmp print_all_nodes
 
 
-
-
-
-
-    fim_imprimeLoop:
-
+    # Ended printing all nodes
+    end_print_all_nodes:
     pop %rbp
     ret
 
