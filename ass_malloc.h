@@ -5,7 +5,9 @@
 
 int foo();
 
-void alloc();
+void* alocaMem();
+
+int liberaMem();
 
 void finalizaAlocador();
 

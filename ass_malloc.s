@@ -1,3 +1,4 @@
+
 .section .data
     I: .quad 0
     INITIAL_TOP_HEAP: .quad 0
@@ -97,6 +98,7 @@ print_node:
 
     movq TOP_LK, %rax                   # Get the top of the heap
     movq INITIAL_LK, %rbx               # Get the initial top of the heap
+    
 
     # Loop to print all the nodes
     print_node_loop:
