@@ -7,14 +7,13 @@ int main (long int argc, char** argv) {
   iniciaAlocador(); 
   imprimeMapa();
   // 0) estado inicial
-
-  a=(void *) alocaMem(100);
+  a=(void *) worst_fit(100);
   imprimeMapa();
-  b=(void *) alocaMem(130);
+  b=(void *) worst_fit(130);
   imprimeMapa();
-  c=(void *) alocaMem(120);
+  c=(void *) worst_fit(120);
   imprimeMapa();
-  d=(void *) alocaMem(110);
+  d=(void *) worst_fit(110);
   imprimeMapa();
   // 1) Espero ver quatro segmentos ocupados
 
@@ -25,11 +24,11 @@ int main (long int argc, char** argv) {
   // 2) Espero ver quatro segmentos alternando
   //    ocupados e livres
 
-  b=(void *) alocaMem(50);
+  b=(void *) worst_fit(50);
   imprimeMapa();
-  d=(void *) alocaMem(90);
+  d=(void *) worst_fit(90);
   imprimeMapa();
-  e=(void *) alocaMem(40);
+  e=(void *) worst_fit(40);
   imprimeMapa();
   // 3) Deduzam
 	

@@ -6,7 +6,7 @@
     TOP_LK: .quad 0
     format: .string "%d\n"
     hello: .ascii "Debug\n"
-    gerencial_bits: .string "################"
+    gerencial_bits: .string "\n################"
     block_free: .string "-"
     block_occupied: .string "+"
     new_line: .string "\n"

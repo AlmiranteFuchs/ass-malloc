@@ -1,0 +1,16 @@
+1 (.5 ponto) Se vocˆe pudesse voltar no tempo, o que vocˆe (de hoje) recomen-
+daria ao vocˆe (do primeiro dia de aula de Software B´asico) para minimizar
+o sofrimento do desenvolvimento deste trabalho?
+    Resposta: "Não atente tanto a otimizações nem estruturas de dados! Assembly é extremamente fácil de se perder, faça coisas simples pequenas uma por vez e depois pense em otimizar"
+
+2 (.5 ponto) O que vocˆe recomendaria ao professor da disciplina quando ele
+se preparar para o pr´oximo semestre remoto a fim de aumentar o grau de
+absor¸c˜ao do conte´udo da disciplina por parte dos alunos?
+    Resposta: "Mais trabalhos pequenos para praticar conceitos adquiridos durante a disciplina"
+
+3 (2 pontos) Explique quais os trechos de c´odigo e quais as principais al-
+tera¸c˜oes que vocˆe fez para que a segunda parte funcionasse , ou indique
+o motivo de vocˆe n˜ao ter conseguido terminar altera¸c˜ao. Indique, por
+exemplo, Quais as linhas de c´odigo que vocˆe mudou e com qual objetivo.
+    Resposta: "Acreditamos que seria melhor reimplementar a função exclusivamente para o worst_fit, uma vez que precisaríamos varrer a lista uma vez para descobrir o maior endereço,
+    poderíamos ter adicionado o maior endereço alocado ativo como variável global e atualizar o valor na alocação de cada bloco se necessário, mas por hora decidímos simplificar" 

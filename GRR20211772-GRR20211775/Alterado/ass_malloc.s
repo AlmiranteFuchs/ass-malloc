@@ -141,7 +141,7 @@ worst_fit:
     worst_fim_alocaMem:
         # Check if a worst fit was found, if not create a new block
         movq WORST_FIT_COUNTER, %rcx        # Get the current worst fit address
-        cmpq $0, %rcx                       # IF the worst fit address is 0
+        cmpq INITIAL_LK, %rcx                       # IF the worst fit address is 0
         je worst_fit_end_create                   # THEN goto worst_fit_end_create;
         # If not 0, return the worst fit address
         movq %rcx, %rax                     # Get the address of the worst fit block
