@@ -15,4 +15,6 @@ void iniciaAlocador();
 
 void imprimeMapa();
 
+void* worst_fit();
+
 #endif

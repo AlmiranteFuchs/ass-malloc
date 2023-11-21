@@ -3,6 +3,7 @@
     I: .quad 0
     INITIAL_TOP_HEAP: .quad 0
     INITIAL_LK: .quad 0
+    WORST_FIT_COUNTER: .quad 0
     TOP_LK: .quad 0
     format: .string "%d\n"
     hello: .ascii "Debug\n"
@@ -92,6 +93,73 @@ alocaMem:
         movq %rbx, %rax
         pop %rbp
         ret
+
+.globl worst_fit
+.type worst_fit, @function
+worst_fit:
+    # Procura um bloco livre que caiba o tamanho solicitado seta como ocupado e retorna o endereço de inicio
+    # se nao achar cria um novo bloco utilizando o brk e retorna o endereço de inicio
+    pushq %rbp
+    movq %rsp, %rbp
+    
+    # Inital setup
+    movq %rdi, %rax     # Numero de bytes a serem alocados
+    movq INITIAL_LK, %rbx   # Get the  initial top of the heap
+    movq %rbx, WORST_FIT_COUNTER            # Set the worst fit address to the initial top of the heap
+
+    worst_busca_bloco:
+        cmpq %rbx, TOP_LK       # IF the top of the heap is equal to the initial top of the heap
+        jle worst_fim_alocaMem   # THEN goto worst_fim_alocaMem;
+
+        # If not the top of the heap, check if the block is free
+        cmpq $0, 8(%rbx)        # IF the dirty bit of the block is 0
+        jne worst_pega_proximo_bloco    # THEN goto worst_pega_proximo_bloco;
+        
+        # Block is free, check if it is the greater block
+        cmpq %rax, 16(%rbx)     # IF the size of the block is greater than the size of the block to be allocated
+        jl worst_pega_proximo_bloco    # THEN 
+
+        # Check if the size greater than the current worst fit
+        movq WORST_FIT_COUNTER, %rcx        # Get the current worst fit address
+        movq 16(%rcx), %rcx                 # Get the size of the current worst fit
+
+        cmpq %rcx, 16(%rbx)                 # IF the size of the block is greater than the size of the current worst fit
+        jle worst_pega_proximo_bloco        # THEN goto worst_pega_proximo_bloco;
+
+        # Block is the new worst fit
+        movq %rbx, WORST_FIT_COUNTER        # Set the new worst fit address
+
+        jmp worst_pega_proximo_bloco
+
+
+        worst_pega_proximo_bloco:
+            movq 16(%rbx), %r12     # Add the size of the block to the top of the heap
+            addq $16, %r12          # Add 16 bytes to the top of the heap for the dirty bit and the size of the block
+            addq %r12, %rbx         # Add the size of the block to the top of the heap
+            jmp worst_busca_bloco
+    
+    worst_fim_alocaMem:
+        # Check if a worst fit was found, if not create a new block
+        movq WORST_FIT_COUNTER, %rcx        # Get the current worst fit address
+        cmpq $0, %rcx                       # IF the worst fit address is 0
+        je worst_fit_end_create                   # THEN goto worst_fit_end_create;
+        # If not 0, return the worst fit address
+        movq %rcx, %rax                     # Get the address of the worst fit block
+        # Set the block as occupied
+        movq $1, 8(%rax)                    # Set the dirty bit to 1
+        jmp worst_fit_end
+
+
+
+    worst_fit_end_create:
+        # block not found
+        call create_node
+        jmp worst_fit_end
+
+worst_fit_end:
+    pop %rbp
+    ret
+
 
 .globl liberaMem    # NEEDS TO RECIEVE THE ADDRESS OF THE BLOCK AND HIS LEFT NEIGHBOR
 .type liberaMem, @function
