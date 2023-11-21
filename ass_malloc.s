@@ -227,6 +227,7 @@ imprimeMapa:
     movq %rsp, %rbp
 
     movq INITIAL_LK, %rbx               # Get the initial top of the heap
+    movq INITIAL_TOP_HEAP, %rax         # Get the initial top of the heap
 
     # Loop to print all the nodes
     print_all_nodes:
@@ -234,8 +235,8 @@ imprimeMapa:
         je end_print_all_nodes                  # THEN goto fim_imprimeMapa;
 
         # Get the node info
-        movq 8(%rbx), %rax                  # Get the dirty bit
-        movq 16(%rbx), %rcx                 # Get the size of the block
+        movq 8(%rbx), %r10                  # Get the dirty bit
+        movq 16(%rbx), %r12                 # Get the size of the block # TODO: Check if this is correct
 
         # Print the node info
         # Header first, just 16 #s
@@ -249,7 +250,7 @@ imprimeMapa:
         movq %rbx, %r9
 
         # We move rbx to the next node
-        addq %rcx, %rbx     # for the size
+        addq %r12, %rbx     # for the size
         addq $16, %rbx      # for the header
 
         # Now we do a for 0 till size of the block
@@ -258,11 +259,11 @@ imprimeMapa:
 
         print_node:
             # We check if we reached the end
-            cmpq %r8, %rcx
+            cmpq %r8, %r12
             je end_print_node
 
             # Check if the dirty bit is 0
-            cmpq $0, %rax
+            cmpq $0, %r10
             je print_free_node
 
             print_occupied_node:
@@ -272,6 +273,7 @@ imprimeMapa:
                 leaq block_occupied(%rip), %rsi
                 movq $1, %rdx
                 syscall
+
                 addq $1, %r8
                 jmp print_node
 
